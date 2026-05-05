@@ -224,12 +224,12 @@ function skinColor(id, base, fr = 0) {
 
 /* ═══════════════ WEAPONS ═══════════════ */
 const WEAPONS = {
-  pistol:  { id: 'pistol',  name: 'PULSE PISTOL',   unlock: 'free',       price: 0,    dmg: 16,  fr: 130,  maxAmmo: 15, res: 90,  rl: 1.3,  bspd: 680, bs: 4,  bc: '#00ffe7', spread: 0,   pellets: 1, desc: 'Fast & reliable.',           sfx: 'shoot'  },
-  shotgun: { id: 'shotgun', name: 'SCATTER CANNON',  unlock: 'lv5',        price: 1000, dmg: 11,  fr: 700,  maxAmmo: 8,  res: 56,  rl: 2.0,  bspd: 520, bs: 5,  bc: '#ff6d00', spread: 0.34, pellets: 6, desc: '6 pellets. Devastating close.', sfx: 'shotgun' },
+  pistol:  { id: 'pistol',  name: 'PULSE PISTOL',   unlock: 'free',       price: 0,    dmg: 16,  fr: 130,  maxAmmo: 15, res: 999,  rl: 1.3,  bspd: 680, bs: 4,  bc: '#00ffe7', spread: 0,   pellets: 1, desc: 'Fast & reliable.',           sfx: 'shoot'  },
+  shotgun: { id: 'shotgun', name: 'SCATTER CANNON',  unlock: 'lv5',        price: 1000, dmg: 11,  fr: 700,  maxAmmo: 8,  res: 999,  rl: 2.0,  bspd: 520, bs: 5,  bc: '#ff6d00', spread: 0.34, pellets: 6, desc: '6 pellets. Devastating close.', sfx: 'shotgun' },
   laser:   { id: 'laser',   name: 'PHASE LASER',     unlock: 'lv10',       price: 1500, dmg: 7,   fr: 52,   maxAmmo: 120, res: 999, rl: 0.65, bspd: 960, bs: 2.5,bc: '#ff1744', spread: 0,   pellets: 1, isLaser: true, desc: 'Beam. Massive DPS.',  sfx: 'laser'  },
-  sniper:  { id: 'sniper',  name: 'VOID SNIPER',     unlock: 'lv15',       price: 2000, dmg: 100, fr: 1280, maxAmmo: 6,  res: 30,  rl: 2.7,  bspd: 1250,bs: 7,  bc: '#c770ff', spread: 0,   pellets: 1, desc: '100 dmg per shot.',          sfx: 'sniper' },
-  plasma:  { id: 'plasma',  name: 'PLASMA CANNON',   unlock: 'gems',       price: 350,  dmg: 40,  fr: 510,  maxAmmo: 10, res: 50,  rl: 2.1,  bspd: 460, bs: 11, bc: '#d040fb', spread: 0,   pellets: 1, isPlasma: true, desc: 'AoE blast.',       sfx: 'plasma' },
-  vblade:  { id: 'vblade',  name: 'VOID BLADE',      unlock: 'battlepass', price: 0,    dmg: 32,  fr: 270,  maxAmmo: 25, res: 150, rl: 1.5,  bspd: 600, bs: 13, bc: '#7c00ff', spread: 0.07, pellets: 1, isPierce: true, desc: 'Slashes. Pierce all.', sfx: 'blade' },
+  sniper:  { id: 'sniper',  name: 'VOID SNIPER',     unlock: 'lv15',       price: 2000, dmg: 100, fr: 1280, maxAmmo: 6,  res: 999,  rl: 2.7,  bspd: 1250,bs: 7,  bc: '#c770ff', spread: 0,   pellets: 1, desc: '100 dmg per shot.',          sfx: 'sniper' },
+  plasma:  { id: 'plasma',  name: 'PLASMA CANNON',   unlock: 'gems',       price: 350,  dmg: 40,  fr: 510,  maxAmmo: 10, res: 999,  rl: 2.1,  bspd: 460, bs: 11, bc: '#d040fb', spread: 0,   pellets: 1, isPlasma: true, desc: 'AoE blast.',       sfx: 'plasma' },
+  vblade:  { id: 'vblade',  name: 'VOID BLADE',      unlock: 'battlepass', price: 0,    dmg: 32,  fr: 270,  maxAmmo: 25, res: 999, rl: 1.5,  bspd: 600, bs: 13, bc: '#7c00ff', spread: 0.07, pellets: 1, isPierce: true, desc: 'Slashes. Pierce all.', sfx: 'blade' },
 };
 const wpnUnlocked = id => {
   const w = WEAPONS[id];
