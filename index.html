@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;user-select:none}
+:root{--bg:#030010;--p1:#00ffe7;--echo:#ff1744;--gold:#ffd600;--violet:#c770ff;--orange:#ff6d00;--green:#00e676;--blue:#2979ff;--dim:rgba(255,255,255,.06);--dim2:rgba(255,255,255,.025);--border:rgba(199,112,255,.18)}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+#gc{position:fixed;inset:0;display:block;z-index:1;pointer-events:all}
+/* COVERS — solid background, sits above canvas */
+.cover{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#030010 0%,#080025 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.cover.off,.cover-scroll.off,.overlay-solid.off{display:none!important}
+.cover-scroll{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#030010 0%,#080025 100%);overflow-y:auto}
+.cover-scroll::-webkit-scrollbar{width:3px}
+.cover-scroll::-webkit-scrollbar-thumb{background:rgba(199,112,255,.3);border-radius:2px}
+.overlay-solid{position:fixed;inset:0;z-index:180;background:rgba(3,0,16,.97);display:flex;flex-direction:column;align-items:center;justify-content:center}
+/* TOPBAR */
+#bar{position:fixed;top:0;left:0;right:0;height:60px;background:rgba(3,0,16,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(28px);z-index:500;display:flex;align-items:center;padding:0 22px;gap:0}
+#bar.off{display:none!important}
+.b-logo{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;letter-spacing:6px;background:linear-gradient(90deg,var(--p1),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer;margin-right:22px;flex-shrink:0}
+.b-navs{display:flex;gap:2px;flex:1}
+.b-nav{padding:8px 14px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;cursor:pointer;border:1px solid transparent;border-radius:3px;color:rgba(255,255,255,.28);transition:all .2s;white-space:nowrap}
+.b-nav:hover{color:rgba(255,255,255,.72);background:rgba(199,112,255,.07);border-color:rgba(199,112,255,.22)}
+.b-nav.on{color:var(--p1);background:rgba(0,255,231,.06);border-color:rgba(0,255,231,.22)}
+.b-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.b-lv-wrap{display:flex;align-items:center;gap:8px}
+.b-lv-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:11px;font-weight:900;border:2px solid var(--violet);color:var(--violet)}
+.b-lv-text{display:flex;flex-direction:column;gap:2px}
+.b-lv-name{font-size:8px;color:rgba(255,255,255,.45);letter-spacing:.5px}
+.b-xp{width:88px;height:3px;background:rgba(199,112,255,.12);border-radius:2px;overflow:hidden}
+.b-xp-f{height:100%;background:linear-gradient(90deg,var(--violet),var(--p1));border-radius:2px;transition:width .5s cubic-bezier(.34,1.56,.64,1)}
+.pill{display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:100px;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;border:1px solid;cursor:pointer;transition:all .18s}
+.pill-g{border-color:rgba(255,214,0,.22);background:rgba(255,214,0,.06);color:var(--gold)}.pill-g:hover{background:rgba(255,214,0,.15)}
+.pill-v{border-color:rgba(199,112,255,.22);background:rgba(199,112,255,.06);color:var(--violet)}.pill-v:hover{background:rgba(199,112,255,.15)}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:3px;cursor:pointer;border:1px solid;border-radius:4px;transition:all .18s;position:relative;overflow:hidden;text-transform:uppercase;white-space:nowrap}
+.btn:active{transform:scale(.95)!important}
+.btn-p{padding:14px 38px;border-color:rgba(0,255,231,.45);background:rgba(0,255,231,.09);color:var(--p1)}
+.btn-p:hover{background:rgba(0,255,231,.2);border-color:var(--p1);color:#fff;box-shadow:0 0 32px rgba(0,255,231,.25),0 12px 28px rgba(0,255,231,.1);transform:translateY(-2px)}
+.btn-lg{padding:16px 52px;font-size:13px;letter-spacing:4px}
+.btn-gold{padding:12px 24px;border-color:rgba(255,214,0,.45);background:rgba(255,214,0,.09);color:var(--gold)}
+.btn-gold:hover{background:rgba(255,214,0,.2);border-color:var(--gold);color:#fff;box-shadow:0 0 28px rgba(255,214,0,.22);transform:translateY(-2px)}
+.btn-violet{padding:10px 22px;border-color:rgba(199,112,255,.45);background:rgba(199,112,255,.09);color:var(--violet)}
+.btn-violet:hover{background:rgba(199,112,255,.2);border-color:var(--violet);color:#fff;transform:translateY(-2px)}
+.btn-ghost{padding:12px 26px;border-color:rgba(255,255,255,.14);background:transparent;color:rgba(255,255,255,.35)}
+.btn-ghost:hover{border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.8)}
+.btn-sm{padding:8px 18px;font-size:9px;letter-spacing:2px}
+.pg-close{position:fixed;top:18px;right:22px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.22);cursor:pointer;z-index:900;transition:color .18s}.pg-close:hover{color:#fff}
+
+/* ── TITLE ── */
+#pg-title{background:radial-gradient(ellipse at 50% -10%,#1a0455 0%,#030010 60%)}
+.title-canvas{position:absolute;inset:0;pointer-events:none;z-index:0}
+.title-content{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center}
+.t-season{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:5px;color:rgba(255,214,0,.55);margin-bottom:8px}
+.t-logo{font-family:'Orbitron',monospace;font-size:clamp(64px,11vw,130px);font-weight:900;letter-spacing:12px;color:transparent;-webkit-text-stroke:2px rgba(0,255,231,.9);text-shadow:0 0 100px rgba(0,255,231,.18);animation:tBr 4s ease-in-out infinite;line-height:1;pointer-events:none;text-align:center}
+.t-mirror{display:block;font-family:'Orbitron',monospace;font-size:clamp(64px,11vw,130px);font-weight:900;letter-spacing:12px;color:transparent;-webkit-text-stroke:1.5px rgba(255,23,68,.3);transform:scaleY(-1);opacity:.3;line-height:1;margin-top:3px;pointer-events:none;animation:tBr 4s 2s ease-in-out infinite}
+@keyframes tBr{0%,100%{opacity:.7}50%{opacity:1}}
+.t-sub{font-size:10px;letter-spacing:4px;color:rgba(255,255,255,.12);margin:14px 0 28px;pointer-events:none}
+.t-stats{display:flex;gap:8px;margin-bottom:28px}
+.t-stat{width:116px;padding:14px 10px;text-align:center;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);border-radius:12px;transition:all .2s}
+.t-stat:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px)}
+.t-stat-n{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;line-height:1;margin-bottom:4px}
+.t-stat-t{font-size:9px;font-weight:600;letter-spacing:.5px;margin-bottom:2px;color:rgba(255,255,255,.7)}
+.t-stat-d{font-size:7px;color:rgba(255,255,255,.22);line-height:1.6}
+.t-btns{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;justify-content:center}
+.t-keys{font-size:7px;letter-spacing:1.5px;color:rgba(255,255,255,.08);text-align:center;line-height:2.2;pointer-events:none}
+
+/* ── LOADOUT ── */
+.lo-top{text-align:center;margin-top:64px;margin-bottom:16px}
+.lo-top-title{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;letter-spacing:5px;margin-bottom:4px}
+.lo-top-sub{font-size:8px;letter-spacing:3px;color:rgba(255,255,255,.22)}
+.lo-level-bar{display:flex;align-items:center;gap:12px;padding:12px 22px;background:rgba(199,112,255,.06);border:1px solid rgba(199,112,255,.18);border-radius:12px;max-width:720px;width:90%;margin:0 auto 16px}
+.lo-lv-icon{width:40px;height:40px;border-radius:50%;border:2px solid var(--violet);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--violet);flex-shrink:0}
+.lo-lv-info{flex:1}
+.lo-lv-name{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--violet);margin-bottom:4px}
+.lo-xp-row{display:flex;align-items:center;gap:8px}
+.lo-xp-track{flex:1;height:5px;background:rgba(199,112,255,.12);border-radius:3px;overflow:hidden}
+.lo-xp-fill{height:100%;background:linear-gradient(90deg,var(--violet),var(--p1));border-radius:3px;transition:width .4s}
+.lo-xp-label{font-size:8px;color:rgba(255,255,255,.28);white-space:nowrap}
+.lo-currency{display:flex;gap:8px;flex-shrink:0}
+.lo-layout{display:flex;gap:14px;width:100%;max-width:1080px;padding:0 16px;align-items:flex-start;margin-bottom:14px}
+.lo-col{flex:1;min-width:0}
+.lo-col-head{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:3px;color:var(--p1);margin-bottom:10px;opacity:.7}
+.lo-items{display:flex;flex-direction:column;gap:5px;max-height:360px;overflow-y:auto}
+.lo-items::-webkit-scrollbar{width:2px}
+.lo-items::-webkit-scrollbar-thumb{background:rgba(199,112,255,.3)}
+.lo-item{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);border-radius:10px;cursor:pointer;transition:all .2s}
+.lo-item:hover:not(.lk){border-color:rgba(199,112,255,.3);background:rgba(199,112,255,.05)}
+.lo-item.sel{border-color:var(--p1);background:rgba(0,255,231,.05);box-shadow:0 0 16px rgba(0,255,231,.08)}
+.lo-item.lk{opacity:.25;cursor:not-allowed}
+.lo-mini{width:38px;height:38px;flex-shrink:0;border-radius:4px}
+.lo-iname{font-size:12px;font-weight:600;margin-bottom:2px}
+.lo-idesc{font-size:8px;color:rgba(255,255,255,.3);line-height:1.4}
+.lo-badge{font-size:9px;flex-shrink:0;margin-left:auto;white-space:nowrap;color:rgba(255,255,255,.3)}
+.lo-preview{flex-shrink:0;width:192px;border:1px solid var(--border);background:rgba(10,5,32,.7);border-radius:14px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.lo-pcanvas{border-radius:8px}
+.lo-pname{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;text-align:center;margin-top:4px}
+.lo-passive{font-size:7.5px;color:rgba(255,255,255,.3);text-align:center;line-height:1.65;padding:0 4px}
+.lo-stats{width:100%;display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.lo-sr{display:flex;align-items:center;gap:7px}
+.lo-sl{font-size:7px;color:rgba(255,255,255,.28);width:38px;flex-shrink:0}
+.lo-sb{flex:1;height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden}
+.lo-sf{height:100%;border-radius:2px;transition:width .4s cubic-bezier(.34,1.56,.64,1)}
+
+/* ── LEVELS ── */
+.lvs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;max-width:1060px;width:100%;padding:0 16px}
+.lv-card{border:1px solid var(--dim);background:var(--dim2);border-radius:12px;padding:14px;position:relative;overflow:hidden;transition:all .2s;border-top:2px solid}
+.lv-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.lv-card.done{border-color:rgba(0,255,231,.2);background:rgba(0,255,231,.02)}
+.lv-card.current{border-color:var(--gold)!important;animation:lvC 2s ease-in-out infinite}
+@keyframes lvC{0%,100%{box-shadow:0 0 18px rgba(255,214,0,.22)}50%{box-shadow:0 0 35px rgba(255,214,0,.45)}}
+.lv-card-n{font-family:'Orbitron',monospace;font-size:7.5px;letter-spacing:2px;color:rgba(255,255,255,.28);margin-bottom:5px}
+.lv-card-name{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;margin-bottom:7px}
+.lv-card-type{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:7px;font-weight:700;letter-spacing:1px;margin-bottom:9px;border:1px solid}
+.lct-learn{border-color:rgba(0,255,231,.3);color:var(--p1);background:rgba(0,255,231,.06)}
+.lct-echo{border-color:rgba(255,23,68,.4);color:var(--echo);background:rgba(255,23,68,.06)}
+.lct-boss{border-color:rgba(255,214,0,.5);color:var(--gold);background:rgba(255,214,0,.07)}
+.lv-card-info{font-size:7.5px;color:rgba(255,255,255,.28);line-height:1.7}
+.lv-card-done{position:absolute;top:10px;right:10px;font-size:14px}
+
+/* ── HUD ── */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:50}
+#hud.off{display:none}
+.h-tl{position:absolute;top:68px;left:12px;width:215px}
+.h-tr{position:absolute;top:68px;right:12px;width:215px;text-align:right}
+.h-tc{position:absolute;top:66px;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap}
+.h-bl{position:absolute;bottom:12px;left:12px}
+.h-br{position:absolute;bottom:12px;right:12px;text-align:right}
+.h-label{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:3px;color:rgba(255,255,255,.2);margin-bottom:5px}
+.h-bar{width:100%;height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-bottom:3px}
+.h-bar-f{height:100%;border-radius:4px;transition:width .12s,background .3s}
+.h-shbar{width:100%;height:3px;background:rgba(255,255,255,.04);border-radius:2px;margin-bottom:3px;overflow:hidden}
+.h-shbar-f{height:100%;background:rgba(199,112,255,.7);transition:width .12s}
+.h-val{font-size:9px;color:rgba(255,255,255,.28)}
+.h-tr .h-bar{direction:rtl}.h-tr .h-shbar{direction:rtl}.h-tr .h-val{text-align:right}.h-tr .h-label{text-align:right}
+.phase-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 13px;border-radius:100px;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:2px;border:1px solid;margin-top:5px}
+.pb-learn{border-color:rgba(0,255,231,.3);color:var(--p1);background:rgba(0,255,231,.06)}
+.pb-echo{border-color:rgba(255,23,68,.4);color:var(--echo);background:rgba(255,23,68,.06);animation:pbG 2s infinite}
+.pb-boss{border-color:rgba(255,214,0,.5);color:var(--gold);background:rgba(255,214,0,.07);animation:pbB 1.2s infinite}
+.pb-final{border-color:rgba(255,23,68,.7);color:#ff8fab;background:rgba(255,23,68,.1);animation:pbF .8s infinite}
+@keyframes pbG{0%,100%{box-shadow:none}50%{box-shadow:0 0 14px rgba(255,23,68,.4)}}
+@keyframes pbB{0%,100%{box-shadow:none}50%{box-shadow:0 0 20px rgba(255,214,0,.5)}}
+@keyframes pbF{0%,100%{box-shadow:0 0 8px rgba(255,23,68,.4)}50%{box-shadow:0 0 28px rgba(255,23,68,.8)}}
+.pb-dot{width:4px;height:4px;border-radius:50%;background:currentColor;animation:tBr 2s infinite}
+.h-score{font-family:'Orbitron',monospace;font-size:19px;font-weight:900;color:#fff;line-height:1}
+.h-level{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:3px;color:rgba(255,255,255,.28);margin-bottom:4px}
+.h-kills-n{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--gold);line-height:1}
+.h-streak{font-size:8px;color:rgba(255,214,0,.45);letter-spacing:1px;margin-top:2px}
+.mm-wrap{border:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.55);border-radius:9px;padding:6px 6px 4px;margin-bottom:8px}
+.mm-lbl{font-family:'Orbitron',monospace;font-size:6px;letter-spacing:2px;color:rgba(255,255,255,.15);margin-bottom:3px}
+.wpn-box{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 13px;margin-bottom:8px}
+.wpn-name{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1.5px;margin-bottom:3px}
+.wpn-ammo-n{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;line-height:1;margin-bottom:2px}
+.wpn-reserve{font-size:8px;color:rgba(255,255,255,.22);margin-bottom:5px}
+.ammo-dots{display:flex;gap:2px;flex-wrap:wrap;max-width:130px}
+.ad{width:5px;height:10px;border-radius:2px;transition:background .08s,box-shadow .08s}
+.ad.f{background:var(--p1);box-shadow:0 0 6px var(--p1)}.ad.e{background:rgba(255,255,255,.07)}
+.ad.rl{background:rgba(0,255,231,.25);animation:rdA .5s ease-in-out infinite alternate}
+@keyframes rdA{to{background:rgba(0,255,231,.8)}}
+.ab-row{display:flex;gap:5px}
+.ab{width:54px;height:54px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.52);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;position:relative;overflow:hidden;border-radius:9px;pointer-events:all;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.ab.rdy{border-color:var(--p1);box-shadow:0 0 12px rgba(0,255,231,.15)}
+.ab.ult-rdy{border-color:var(--gold)!important;animation:ultP 1.5s infinite}
+@keyframes ultP{0%,100%{box-shadow:0 0 12px rgba(255,214,0,.3)}50%{box-shadow:0 0 36px rgba(255,214,0,.7)}}
+.ab-fill{position:absolute;bottom:0;left:0;right:0;background:rgba(0,255,231,.1);transition:height .1s}
+.ab-icon{font-size:17px;line-height:1;position:relative;z-index:1}
+.ab-key{font-family:'Orbitron',monospace;font-size:7px;color:rgba(255,255,255,.22);position:relative;z-index:1}
+.ab-cd{position:absolute;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:12px;color:var(--p1);border-radius:9px}
+.ab-cd.h{display:none}
+.obj-panel{width:205px;border:1px solid rgba(199,112,255,.18);background:rgba(3,0,16,.78);border-radius:10px;padding:11px 14px;margin-bottom:8px}
+.obj-title{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:3px;color:var(--violet);margin-bottom:8px}
+.obj-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.obj-lbl{font-size:8px;color:rgba(255,255,255,.38)}.obj-val{font-family:'Orbitron',monospace;font-size:8px;font-weight:700}
+.obj-prog{height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin-bottom:5px;overflow:hidden}
+.obj-prog-f{height:100%;border-radius:2px;transition:width .3s}
+#dmg-overlay{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:0;transition:opacity .07s}
+#dmg-overlay.hit{background:radial-gradient(ellipse at center,transparent 25%,rgba(255,23,68,.32) 100%);opacity:1}
+#dmg-overlay.boss-hit{background:radial-gradient(ellipse at center,transparent 25%,rgba(255,214,0,.22) 100%);opacity:1}
+#rtrans{position:fixed;inset:0;z-index:180;background:rgba(3,0,16,.98);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none;opacity:0;transition:opacity .35s}
+#rtrans.show{opacity:1}
+.rt-sup{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:5px;color:rgba(255,255,255,.2)}
+.rt-num{font-family:'Orbitron',monospace;font-size:120px;font-weight:900;line-height:1;text-shadow:0 0 80px currentColor}
+.rt-name{font-size:12px;letter-spacing:6px;color:rgba(255,255,255,.3);margin-top:-4px}
+.rt-type{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;margin-top:6px}
+.rt-rewards{display:flex;gap:7px;margin-top:16px;flex-wrap:wrap;justify-content:center}
+.rt-rew{padding:5px 14px;border:1px solid rgba(255,214,0,.25);background:rgba(255,214,0,.05);border-radius:100px;font-family:'Orbitron',monospace;font-size:8px;color:var(--gold)}
+/* UPGRADE */
+.upg-sup{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:4px;color:var(--p1);margin-bottom:5px}
+.upg-title{font-family:'Orbitron',monospace;font-size:44px;font-weight:900;line-height:1;margin-bottom:4px}
+.upg-sub{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.2);margin-bottom:8px}
+.upg-owned{font-size:8px;color:rgba(255,255,255,.18);max-width:700px;text-align:center;line-height:1.7;margin-bottom:22px;min-height:14px}
+.upg-cards{display:flex;gap:10px;margin-bottom:20px}
+.uc{width:200px;border:1px solid rgba(199,112,255,.2);background:rgba(199,112,255,.03);border-radius:12px;padding:22px 16px;cursor:pointer;transition:all .2s}
+.uc:hover{border-color:var(--violet);background:rgba(199,112,255,.09);transform:translateY(-6px);box-shadow:0 20px 50px rgba(199,112,255,.15)}
+.uc:active{transform:translateY(-2px)}
+.uc-icon{font-size:40px;margin-bottom:12px;display:block}
+.uc-name{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;margin-bottom:7px}
+.uc-desc{font-size:8px;color:rgba(255,255,255,.35);line-height:1.65;margin-bottom:12px}
+.uc-tag{display:inline-block;padding:2px 8px;border-radius:100px;font-size:7px;letter-spacing:1px;font-weight:700;border:1px solid}
+.upg-skip{font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.15);cursor:pointer;transition:color .2s}.upg-skip:hover{color:rgba(255,255,255,.5)}
+#klog{position:fixed;top:68px;right:12px;z-index:55;display:flex;flex-direction:column;gap:2px;pointer-events:none;align-items:flex-end}
+.kl{font-size:8px;padding:4px 10px;background:rgba(0,0,0,.85);border:1px solid rgba(255,255,255,.06);border-radius:4px;animation:klF 3.5s forwards;white-space:nowrap}
+@keyframes klF{0%,60%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(12px)}}
+#combo-wrap{position:fixed;top:28%;left:50%;transform:translateX(-50%);pointer-events:none;z-index:65;text-align:center}
+.combo-n{font-family:'Orbitron',monospace;font-size:72px;font-weight:900;color:var(--gold);text-shadow:0 0 50px var(--gold),0 0 100px rgba(255,214,0,.25);opacity:0;transition:opacity .1s;line-height:1}
+.combo-l{font-size:10px;letter-spacing:4px;color:var(--gold);opacity:0;transition:opacity .1s;margin-top:-6px;font-weight:600}
+#alert-wrap{position:fixed;top:32%;left:50%;transform:translateX(-50%);pointer-events:none;z-index:66;text-align:center}
+.alert-t{font-family:'Orbitron',monospace;font-size:19px;font-weight:900;letter-spacing:7px;opacity:0;transition:opacity .25s;text-shadow:0 0 22px currentColor}
+.fr{position:fixed;pointer-events:none;z-index:67;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;animation:frU .9s cubic-bezier(.16,1,.3,1) forwards;white-space:nowrap;text-shadow:0 0 10px currentColor}
+@keyframes frU{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(.75)}}
+#lvup{position:fixed;inset:0;pointer-events:none;z-index:160;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s}
+#lvup.show{opacity:1}
+.lvu-wrap{text-align:center;background:rgba(3,0,16,.9);padding:36px 56px;border-radius:22px;border:1px solid rgba(199,112,255,.3);box-shadow:0 0 80px rgba(199,112,255,.15)}
+.lvu-sup{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:5px;color:rgba(255,255,255,.3);margin-bottom:4px}
+.lvu-num{font-family:'Orbitron',monospace;font-size:90px;font-weight:900;color:var(--violet);text-shadow:0 0 70px var(--violet),0 0 140px rgba(199,112,255,.3);line-height:1;animation:lvuP .9s cubic-bezier(.34,1.56,.64,1)}
+.lvu-name{font-size:13px;letter-spacing:5px;color:var(--violet);margin-top:4px}
+.lvu-bonus{font-size:9px;color:rgba(255,255,255,.32);margin-top:8px;letter-spacing:1px;line-height:1.7}
+@keyframes lvuP{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+/* GAME OVER */
+.ov-title{font-family:'Orbitron',monospace;font-size:clamp(36px,5.5vw,72px);font-weight:900;letter-spacing:5px;margin-bottom:5px;text-align:center;line-height:1}
+.ov-win{color:var(--p1);text-shadow:0 0 60px var(--p1)}.ov-lose{color:var(--echo);text-shadow:0 0 60px var(--echo)}
+.ov-sub{font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.18);margin-bottom:20px;text-align:center}
+.ov-stats{display:flex;gap:28px;margin-bottom:16px;flex-wrap:wrap;justify-content:center}
+.ov-stat{text-align:center}
+.ov-stat-n{font-family:'Orbitron',monospace;font-size:36px;font-weight:900;color:var(--violet);line-height:1}
+.ov-stat-l{font-size:7px;letter-spacing:2px;color:rgba(255,255,255,.2);margin-top:3px}
+.ov-rews{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
+.ov-rew{padding:5px 14px;border:1px solid rgba(255,214,0,.25);background:rgba(255,214,0,.05);border-radius:100px;font-family:'Orbitron',monospace;font-size:8px;color:var(--gold)}
+.ov-upgs{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
+.ov-upg{padding:2px 9px;border:1px solid rgba(199,112,255,.22);background:rgba(199,112,255,.04);border-radius:100px;font-size:7px;color:var(--violet)}
+.ov-msg{font-size:9px;color:rgba(255,255,255,.22);max-width:420px;text-align:center;line-height:1.8;margin-bottom:18px}
+.ov-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+/* SHOP */
+.sh-hero{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;margin-top:8px}
+.sh-title-sup{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:4px;color:var(--p1);margin-bottom:4px;opacity:.7}
+.sh-title{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;letter-spacing:2px}
+.sh-bals{display:flex;gap:8px}
+.tabs{display:flex;gap:3px;margin-bottom:18px}
+.tab{padding:8px 20px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;cursor:pointer;border:1px solid transparent;border-radius:100px;color:rgba(255,255,255,.28);transition:all .2s}
+.tab:hover:not(.on){color:rgba(255,255,255,.6)}
+.tab.on{border-color:rgba(0,255,231,.32);background:rgba(0,255,231,.06);color:var(--p1)}
+.sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px}
+.sh-card{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);border-radius:12px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center;position:relative;overflow:hidden}
+.sh-card:hover:not(.owned):not(.cant){border-color:rgba(255,214,0,.3);background:rgba(255,214,0,.04);transform:translateY(-3px)}
+.sh-card.owned{border-color:rgba(0,255,231,.22);background:rgba(0,255,231,.03);cursor:default}
+.sh-card.owned::after{content:'OWNED';position:absolute;top:8px;right:9px;font-family:'Orbitron',monospace;font-size:6px;letter-spacing:1.5px;color:var(--p1);background:rgba(0,255,231,.1);padding:2px 7px;border-radius:100px}
+.sh-card.cant{opacity:.22;cursor:not-allowed}
+.sh-preview-cv{width:72px;height:72px;margin:0 auto 10px;display:block}
+.sh-name{font-family:'Orbitron',monospace;font-size:8.5px;font-weight:700;margin-bottom:4px}
+.sh-desc{font-size:7.5px;color:rgba(255,255,255,.3);line-height:1.5;margin-bottom:10px;min-height:22px}
+.sh-price{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px}
+.sh-icon{font-size:36px;margin-bottom:10px;display:block}
+/* BATTLE PASS */
+.bp-hero{display:flex;align-items:center;gap:14px;padding:20px 24px;border:1px solid rgba(199,112,255,.3);background:linear-gradient(135deg,rgba(199,112,255,.1),rgba(3,0,16,.8));border-radius:14px;margin-bottom:22px;position:relative;overflow:hidden}
+.bp-hero::before{content:'★ PREMIUM';position:absolute;top:0;right:0;padding:4px 12px;background:linear-gradient(135deg,var(--gold),var(--orange));font-family:'Orbitron',monospace;font-size:7px;letter-spacing:2px;color:#000;font-weight:900;border-radius:0 14px 0 8px}
+.bp-hero-icon{font-size:36px;flex-shrink:0}
+.bp-hero-info{flex:1}
+.bp-hero-title{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:var(--violet);margin-bottom:5px}
+.bp-hero-desc{font-size:9px;color:rgba(255,255,255,.4);line-height:1.7}
+.bp-progress-wrap{display:flex;align-items:center;gap:12px;margin-bottom:22px;padding:14px 20px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);border-radius:12px}
+.bp-pl{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1.5px;color:var(--gold);white-space:nowrap}
+.bp-track{flex:1;height:10px;background:rgba(255,255,255,.05);border-radius:5px;overflow:hidden}
+.bp-track-f{height:100%;background:linear-gradient(90deg,var(--gold),var(--orange));border-radius:5px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+.bp-section-title{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:3px;margin-bottom:10px;margin-top:20px;display:flex;align-items:center;gap:8px}
+.bp-section-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06)}
+.bp-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:10px}
+.bp-row::-webkit-scrollbar{height:2px}
+.bp-row::-webkit-scrollbar-thumb{background:rgba(199,112,255,.3)}
+.bp-card{flex-shrink:0;width:90px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);border-radius:10px;padding:9px 7px;text-align:center;position:relative;cursor:default;transition:all .2s}
+.bp-card.unlocked{border-color:rgba(255,214,0,.25);background:rgba(255,214,0,.03)}
+.bp-card.claimable{border-color:var(--gold);cursor:pointer;animation:bpCl 2s infinite}
+@keyframes bpCl{0%,100%{box-shadow:none}50%{box-shadow:0 0 20px rgba(255,214,0,.42)}}
+.bp-card.claimable:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(255,214,0,.38)!important}
+.bp-card.claimed{opacity:.42;filter:grayscale(.7)}
+.bp-card.plk{opacity:.18}
+.bp-tier-n{font-family:'Orbitron',monospace;font-size:6px;letter-spacing:1px;color:rgba(255,255,255,.2);margin-bottom:4px}
+.bp-icon{font-size:24px;display:block;margin-bottom:3px}
+.bp-card-name{font-size:6.5px;color:rgba(255,255,255,.38);line-height:1.35;min-height:16px}
+.bp-flair{position:absolute;top:4px;left:4px;font-size:5px;font-weight:700;letter-spacing:.5px;padding:1px 4px;border-radius:3px}
+.bp-flair-f{color:var(--green);background:rgba(0,230,118,.12)}.bp-flair-p{color:var(--violet);background:rgba(199,112,255,.14)}
+.bp-check{position:absolute;inset:0;background:rgba(0,0,0,.52);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+</style>
+</head>
+<body>
+
+<!-- PERSISTENT OVERLAYS -->
+<div id="dmg-overlay"></div>
+<div id="lvup"><div class="lvu-wrap"><div class="lvu-sup">LEVEL UP</div><div class="lvu-num" id="lvu-num">2</div><div class="lvu-name" id="lvu-name">SOLDIER</div><div class="lvu-bonus" id="lvu-bonus"></div></div></div>
+<div id="rtrans"><div class="rt-sup">ENTERING LEVEL</div><div class="rt-num" id="rt-n" style="color:#fff">2</div><div class="rt-name" id="rt-name">SYNAPSE</div><div class="rt-type" id="rt-type"></div><div class="rt-rewards" id="rt-rews"></div></div>
+<canvas id="gc"></canvas>
+<div id="klog"></div>
+<div id="combo-wrap"><div class="combo-n" id="cn"></div><div class="combo-l" id="cl"></div></div>
+<div id="alert-wrap"><div class="alert-t" id="at"></div></div>
+
+<!-- TOPBAR -->
+<div id="bar" class="off">
+  <div class="b-logo" onclick="nav('title')">ECHOES</div>
+  <div class="b-navs">
+    <div class="b-nav on" id="bn-title" onclick="nav('title')">PLAY</div>
+    <div class="b-nav" id="bn-loadout" onclick="nav('loadout')">LOADOUT</div>
+    <div class="b-nav" id="bn-levels" onclick="nav('levels')">LEVELS</div>
+    <div class="b-nav" id="bn-shop" onclick="nav('shop')">SHOP</div>
+    <div class="b-nav" id="bn-bp" onclick="nav('bp')">BATTLE PASS</div>
+  </div>
+  <div class="b-right">
+    <div class="b-lv-wrap">
+      <div class="b-lv-icon" id="bar-lv">1</div>
+      <div class="b-lv-text">
+        <div class="b-lv-name" id="bar-lvname">RECRUIT</div>
+        <div class="b-xp"><div class="b-xp-f" id="bar-xpf" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div id="bar-prestige" style="font-size:11px;color:var(--gold);letter-spacing:1px"></div>
+    <div class="pill pill-v" onclick="nav('bp')">💠 <span id="bar-gems">0</span></div>
+    <div class="pill pill-g" onclick="nav('shop')">⬡ <span id="bar-coins">500</span></div>
+  </div>
+</div>
+
+<!-- TITLE -->
+<div class="cover" id="pg-title">
+  <canvas id="tc" class="title-canvas"></canvas>
+  <div class="title-content">
+    <div class="t-season">DEFINITIVE EDITION · SEASON TWO</div>
+    <div class="t-logo">ECHOES</div>
+    <div class="t-mirror">ECHOES</div>
+    <div class="t-sub">// fight your own reflection //</div>
+    <div class="t-stats">
+      <div class="t-stat"><div class="t-stat-n" style="color:var(--p1)">6</div><div class="t-stat-t">OPERATIVES</div><div class="t-stat-d">Unique shapes & materials</div></div>
+      <div class="t-stat"><div class="t-stat-n" style="color:var(--gold)">20</div><div class="t-stat-t">LEVELS</div><div class="t-stat-d">Escalating to near-impossible</div></div>
+      <div class="t-stat"><div class="t-stat-n" style="color:var(--echo)">4</div><div class="t-stat-t">BOSSES</div><div class="t-stat-d">Multi-phase nightmare encounters</div></div>
+      <div class="t-stat"><div class="t-stat-n" style="color:var(--violet)">50</div><div class="t-stat-t">BP TIERS</div><div class="t-stat-d">Skins · Weapons · Perks</div></div>
+    </div>
+    <div class="t-btns">
+      <button class="btn btn-p btn-lg" onclick="nav('loadout')">▶ PLAY NOW</button>
+      <button class="btn btn-gold" onclick="nav('levels')">📋 LEVELS</button>
+      <button class="btn btn-gold" onclick="nav('bp')">★ BATTLE PASS</button>
+      <button class="btn btn-ghost" onclick="nav('shop')">SHOP</button>
+    </div>
+    <div class="t-keys">WASD · MOVE &nbsp;|&nbsp; MOUSE · AIM + SHOOT &nbsp;|&nbsp; SHIFT · DASH &nbsp;|&nbsp; E · SHOCKWAVE &nbsp;|&nbsp; F · BLINK &nbsp;|&nbsp; R · ULT / RELOAD &nbsp;|&nbsp; Q · RELOAD &nbsp;|&nbsp; 1-6 · WEAPON</div>
+  </div>
+</div>
+
+<!-- LOADOUT -->
+<div class="cover off" id="pg-loadout">
+  <div class="pg-close" onclick="nav('title')">✕ BACK</div>
+  <div class="lo-top"><div class="lo-top-title">SELECT OPERATIVE</div><div class="lo-top-sub">CHOOSE YOUR SHAPE · SKIN · WEAPON</div></div>
+  <div class="lo-level-bar">
+    <div class="lo-lv-icon" id="lo-lv-n">1</div>
+    <div class="lo-lv-info">
+      <div class="lo-lv-name" id="lo-lv-name">RECRUIT</div>
+      <div class="lo-xp-row"><div class="lo-xp-track"><div class="lo-xp-fill" id="lo-xpf" style="width:0%"></div></div><div class="lo-xp-label">Level up to unlock weapons</div></div>
+    </div>
+    <div class="lo-currency"><div class="pill pill-v">💠 <span id="lo-gems">0</span></div><div class="pill pill-g">⬡ <span id="lo-coins">500</span></div></div>
+  </div>
+  <div class="lo-layout">
+    <div class="lo-col"><div class="lo-col-head">// OPERATIVE</div><div class="lo-items" id="lo-chars"></div></div>
+    <div class="lo-preview">
+      <canvas id="prev-cv" width="158" height="158" class="lo-pcanvas"></canvas>
+      <div class="lo-pname" id="lo-pname">—</div>
+      <div class="lo-passive" id="lo-passive"></div>
+      <div class="lo-stats">
+        <div class="lo-sr"><div class="lo-sl">HP</div><div class="lo-sb"><div class="lo-sf" id="ps-hp" style="background:#00e676"></div></div></div>
+        <div class="lo-sr"><div class="lo-sl">SPEED</div><div class="lo-sb"><div class="lo-sf" id="ps-spd" style="background:#2979ff"></div></div></div>
+        <div class="lo-sr"><div class="lo-sl">SHIELD</div><div class="lo-sb"><div class="lo-sf" id="ps-sh" style="background:#c770ff"></div></div></div>
+        <div class="lo-sr"><div class="lo-sl">DAMAGE</div><div class="lo-sb"><div class="lo-sf" id="ps-dmg" style="background:#ff6d00"></div></div></div>
+      </div>
+    </div>
+    <div class="lo-col"><div class="lo-col-head">// WEAPON</div><div class="lo-items" id="lo-wpns"></div></div>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:12px">
+    <button class="btn btn-p" style="padding:14px 52px;font-size:12px" onclick="startGame()">▶ DROP IN</button>
+    <button class="btn btn-ghost" onclick="nav('title')">BACK</button>
+  </div>
+</div>
+
+<!-- LEVELS -->
+<div class="cover-scroll off" id="pg-levels">
+  <div class="pg-close" onclick="nav('title')">✕ CLOSE</div>
+  <div style="max-width:1060px;margin:0 auto;padding:80px 16px 40px">
+    <div style="margin-bottom:22px"><div class="sh-title-sup">SEASON TWO</div><div class="sh-title">LEVEL PROGRESSION</div></div>
+    <div class="lvs-grid" id="lvs-grid"></div>
+  </div>
+</div>
+
+<!-- SHOP -->
+<div class="cover-scroll off" id="pg-shop">
+  <div class="pg-close" onclick="nav('title')">✕ CLOSE</div>
+  <div style="max-width:900px;margin:0 auto;padding:80px 20px 40px">
+    <div class="sh-hero">
+      <div><div class="sh-title-sup">VOID MARKET</div><div class="sh-title">SHOP</div></div>
+      <div class="sh-bals"><div class="pill pill-v">💠 <span id="sh-gems">0</span></div><div class="pill pill-g">⬡ <span id="sh-coins">500</span></div></div>
+    </div>
+    <div class="tabs" id="sh-tabs">
+      <div class="tab on" onclick="shTab('skins',this)">SKINS</div>
+      <div class="tab" onclick="shTab('weapons',this)">WEAPONS</div>
+      <div class="tab" onclick="shTab('powerups',this)">POWER-UPS</div>
+    </div>
+    <div class="sh-grid" id="sh-grid"></div>
+  </div>
+</div>
+
+<!-- BATTLE PASS -->
+<div class="cover-scroll off" id="pg-bp">
+  <div class="pg-close" onclick="nav('title')">✕ CLOSE</div>
+  <div style="max-width:940px;margin:0 auto;padding:80px 20px 40px">
+    <div style="margin-bottom:16px"><div class="sh-title-sup">SEASON TWO</div><div class="sh-title">BATTLE PASS</div></div>
+    <div class="bp-hero">
+      <div class="bp-hero-icon">🌌</div>
+      <div class="bp-hero-info">
+        <div class="bp-hero-title">PREMIUM PASS — 💠 800 GEMS</div>
+        <div class="bp-hero-desc">T8: Inferno Skin &nbsp;·&nbsp; T25: Void Blade weapon &nbsp;·&nbsp; T30: Void Walker operative &nbsp;·&nbsp; T50: Echo King skin<br>Total: 40,000+ coins &nbsp;·&nbsp; 10,000+ gems &nbsp;·&nbsp; Exclusive characters, weapons & trails</div>
+      </div>
+      <button class="btn btn-violet btn-sm" id="bp-buy-btn" onclick="buyBP()">UNLOCK NOW</button>
+    </div>
+    <div class="bp-progress-wrap">
+      <div class="bp-pl">TIER <span id="bp-tier-n">1</span>/50</div>
+      <div class="bp-track"><div class="bp-track-f" id="bp-xp-bar" style="width:0%"></div></div>
+      <div class="bp-pl"><span id="bp-xp-cur">0</span> / <span id="bp-xp-max">600</span> XP</div>
+      <div class="pill pill-v" style="margin-left:8px">💠 <span id="bp-gems">0</span></div>
+    </div>
+    <div id="bp-content"></div>
+  </div>
+</div>
+
+<!-- HUD (in-game, transparent overlay) -->
+<div id="hud" class="off">
+  <div class="h-tl">
+    <div class="obj-panel"><div class="obj-title">OBJECTIVE</div><div id="obj-body"></div></div>
+    <div class="h-label">OPERATIVE</div>
+    <div class="h-bar"><div class="h-bar-f" id="b-hp"></div></div>
+    <div class="h-shbar"><div class="h-shbar-f" id="b-sh"></div></div>
+    <div class="h-val"><span id="v-hp">100</span> HP · <span id="v-sh">50</span> SH</div>
+  </div>
+  <div class="h-tc">
+    <div class="h-level">LEVEL <span id="v-lvl">1</span> / 20</div>
+    <div class="h-score" id="v-score">0</div>
+    <div class="phase-badge pb-learn" id="phase-badge"><div class="pb-dot"></div><span id="phase-txt">CLEAR THE AREA</span></div>
+  </div>
+  <div class="h-tr">
+    <div class="h-label" id="enemy-lbl">ENEMY</div>
+    <div class="h-bar"><div class="h-bar-f" id="b-ehp" style="background:var(--echo)"></div></div>
+    <div class="h-shbar"><div class="h-shbar-f" id="b-esh" style="background:rgba(41,121,255,.7)"></div></div>
+    <div class="h-val"><span id="v-ehp">—</span></div>
+  </div>
+  <div class="h-bl">
+    <div class="mm-wrap"><div class="mm-lbl">VOID MAP</div><canvas id="mm" width="140" height="140"></canvas></div>
+    <div class="wpn-box">
+      <div class="wpn-name" id="wpn-name" style="color:var(--p1)">PULSE PISTOL</div>
+      <div class="wpn-ammo-n"><span id="wpn-ammo">15</span></div>
+      <div class="wpn-reserve">/ <span id="wpn-res">90</span> RESERVE — Q to reload</div>
+      <div class="ammo-dots" id="ammo-dots"></div>
+    </div>
+    <div class="h-label" style="margin-bottom:6px">ABILITIES</div>
+    <div class="ab-row">
+      <div class="ab rdy" id="ab-dash" onclick="useAb('dash')"><div class="ab-fill" id="abf-dash" style="height:100%"></div><div class="ab-icon">⚡</div><div class="ab-key">SHIFT</div><div class="ab-cd h" id="abc-dash"></div></div>
+      <div class="ab rdy" id="ab-wave" onclick="useAb('wave')"><div class="ab-fill" id="abf-wave" style="height:100%"></div><div class="ab-icon">🌊</div><div class="ab-key">E</div><div class="ab-cd h" id="abc-wave"></div></div>
+      <div class="ab rdy" id="ab-blink" onclick="useAb('blink')"><div class="ab-fill" id="abf-blink" style="height:100%"></div><div class="ab-icon">🌀</div><div class="ab-key">F</div><div class="ab-cd h" id="abc-blink"></div></div>
+      <div class="ab" id="ab-ult" onclick="useAb('ult')" style="border-color:rgba(255,214,0,.15)"><div class="ab-fill" id="abf-ult" style="height:0%;background:rgba(255,214,0,.12)"></div><div class="ab-icon">☀️</div><div class="ab-key">R</div><div class="ab-cd h" id="abc-ult"></div></div>
+    </div>
+  </div>
+  <div class="h-br">
+    <div class="h-label">KILLS</div>
+    <div class="h-kills-n" id="v-kills">0</div>
+    <div class="h-streak" id="v-streak"></div>
+    <div style="margin-top:10px;font-size:8px;color:rgba(255,255,255,.18)" id="v-status">IDLE</div>
+    <div style="margin-top:5px;font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold)">⬡ <span id="v-coins-hud">0</span></div>
+    <div id="v-prestige" style="font-size:7px;color:rgba(255,255,255,.14);margin-top:2px"></div>
+  </div>
+</div>
+
+<!-- UPGRADE (in-game overlay) -->
+<div class="overlay-solid off" id="pg-upg">
+  <div class="upg-sup">LEVEL COMPLETE</div>
+  <div class="upg-title" id="upg-title">LEVEL 2</div>
+  <div class="upg-sub">CHOOSE AN UPGRADE — LASTS THIS ENTIRE RUN</div>
+  <div class="upg-owned" id="upg-owned"></div>
+  <div class="upg-cards" id="upg-cards"></div>
+  <div class="upg-skip" onclick="skipUpgrade()">[  SKIP  ]</div>
+</div>
+
+<!-- GAME OVER -->
+<div class="cover off" id="pg-over">
+  <div class="ov-title" id="ov-title">ELIMINATED</div>
+  <div class="ov-sub" id="ov-sub">THE VOID CLAIMS ANOTHER</div>
+  <div class="ov-stats">
+    <div class="ov-stat"><div class="ov-stat-n" id="ov-score">0</div><div class="ov-stat-l">SCORE</div></div>
+    <div class="ov-stat"><div class="ov-stat-n" id="ov-level">1</div><div class="ov-stat-l">LEVEL</div></div>
+    <div class="ov-stat"><div class="ov-stat-n" id="ov-kills">0</div><div class="ov-stat-l">KILLS</div></div>
+    <div class="ov-stat"><div class="ov-stat-n" id="ov-combo">0</div><div class="ov-stat-l">MAX COMBO</div></div>
+    <div class="ov-stat"><div class="ov-stat-n" id="ov-earned" style="color:var(--gold)">⬡0</div><div class="ov-stat-l">EARNED</div></div>
+  </div>
+  <div class="ov-rews" id="ov-rews"></div>
+  <div class="ov-upgs" id="ov-upgs"></div>
+  <div class="ov-msg" id="ov-msg"></div>
+  <div class="ov-btns">
+    <button class="btn btn-p" onclick="nav('loadout')">PLAY AGAIN</button>
+    <button class="btn btn-ghost" onclick="nav('shop')">SHOP</button>
+    <button class="btn btn-ghost" onclick="nav('title')">MENU</button>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="audio.js"></script>
+<script src="engine.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>
